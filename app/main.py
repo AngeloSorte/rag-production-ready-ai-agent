@@ -1,12 +1,18 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
+
 app = FastAPI(
-    title="RAG Production-Ready AI Agent",
-    version="0.1.0",
+    title=settings.app_name,
+    version=settings.app_version,
     description="Production-ready RAG AI Agent API.",
 )
 
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "environment": settings.environment,
+    }
