@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     app_name: str = "RAG Production-Ready AI Agent"
     app_version: str = "0.1.0"
     environment: str = "development"
+    groq_api_key: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
