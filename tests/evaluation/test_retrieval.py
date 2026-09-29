@@ -42,12 +42,24 @@ def main() -> None:
     test_cases = load_test_cases()
     retriever = Retriever()
 
-    total = len(test_cases)
+    answerable_cases = [
+        test_case
+        for test_case in test_cases
+        if test_case.get("answerable", True)
+    ]
+
+    unanswerable_cases = [
+        test_case
+        for test_case in test_cases
+        if not test_case.get("answerable", True)
+    ]
+
+    total_answerable = len(answerable_cases)
     passed = 0
 
     print("=== RETRIEVAL EVALUATION ===\n")
 
-    for index, test_case in enumerate(test_cases, start=1):
+    for index, test_case in enumerate(answerable_cases, start=1):
         question = test_case["question"]
         expected_sources = test_case["expected_sources"]
 
@@ -68,7 +80,7 @@ def main() -> None:
 
         status = "PASS" if hit else "FAIL"
 
-        print(f"[{index}/{total}] {status}")
+        print(f"[{index}/{total_answerable}] {status}")
         print(f"Question: {question}")
 
         print("Retrieved:")
@@ -82,11 +94,23 @@ def main() -> None:
 
         print()
 
-    hit_rate = passed / total if total else 0.0
+    hit_rate = passed / total_answerable if total_answerable else 0.0
 
     print("=== SUMMARY ===")
-    print(f"Passed: {passed}/{total}")
+    print(f"Answerable cases: {passed}/{total_answerable}")
     print(f"Hit@5: {hit_rate:.2%}")
+
+    if unanswerable_cases:
+        print()
+        print("=== UNANSWERABLE CASES ===")
+
+        for test_case in unanswerable_cases:
+            print(f"- {test_case['question']}")
+
+        print(
+            "\nThese cases are evaluated by the generation/"
+            "grounding tests, not by Hit@5."
+        )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 [
   {
     "question": "Che cosa meditiamo nel Santo Rosario?",
+    "answerable": true,
     "expected_sources": [
       {
         "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf",
@@ -10,6 +11,7 @@
   },
   {
     "question": "Quali sono i misteri del Santo Rosario?",
+    "answerable": true,
     "expected_sources": [
       {
         "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf",
@@ -19,25 +21,26 @@
   },
   {
     "question": "Che cosa sono i misteri dolorosi?",
+    "answerable": true,
     "expected_sources": [
       {
-        "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf"
+        "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf",
+        "page": 5
       }
     ]
   },
   {
     "question": "Come si recita il Santo Rosario?",
-    "expected_sources": [
-      {
-        "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf"
-      }
-    ]
+    "answerable": false,
+    "expected_sources": []
   },
   {
     "question": "Qual è il significato della preghiera del Rosario?",
+    "answerable": true,
     "expected_sources": [
       {
-        "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf"
+        "source": "Meditazioni_Santo_Rosario_Breve_IT_3f96a7fcaa.pdf",
+        "page": 2
       }
     ]
   }

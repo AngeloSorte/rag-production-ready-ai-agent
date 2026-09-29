@@ -3,8 +3,7 @@ from typing import Any
 from sentence_transformers import CrossEncoder
 
 
-MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L6-v2"
-
+MODEL_NAME = "vincolle/reranker-bert-italian-uncased-mmarco-mnrl"
 
 class Reranker:
     """Rerank retrieved documents using a lightweight cross-encoder."""

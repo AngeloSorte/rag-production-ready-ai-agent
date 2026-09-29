@@ -1,0 +1,44 @@
+[
+  {
+    "question": "Che cosa meditiamo nel Santo Rosario?",
+    "answerable": true,
+    "expected_facts": [
+      "Nel Rosario si meditano i misteri della vita di Gesù e di Maria."
+    ],
+    "forbidden_terms": [
+      "conversione di Paolo",
+      "consacrazione della Chiesa",
+      "ultima cena come mistero luminoso"
+    ]
+  },
+  {
+    "question": "Quali sono i misteri del Santo Rosario?",
+    "answerable": true,
+    "expected_facts": [
+      "I misteri del Rosario comprendono i misteri Gioiosi, Luminosi, Dolorosi e Gloriosi."
+    ],
+    "forbidden_terms": []
+  },
+  {
+    "question": "Che cosa sono i misteri dolorosi?",
+    "answerable": true,
+    "expected_facts": [
+      "I misteri dolorosi riguardano la Passione e la morte di Gesù."
+    ],
+    "forbidden_terms": []
+  },
+  {
+    "question": "Come si recita il Santo Rosario?",
+    "answerable": false,
+    "expected_facts": [],
+    "forbidden_terms": []
+  },
+  {
+    "question": "Qual è il significato della preghiera del Rosario?",
+    "answerable": true,
+    "expected_facts": [
+      "Il Rosario invita alla meditazione sulla vita di Gesù e di Maria."
+    ],
+    "forbidden_terms": []
+  }
+]
