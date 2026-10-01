@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Production-ready RAG AI Agent built with Python, FastAPI and open-source AI technologies."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Angelo Sorte"}
 ]
@@ -17,7 +17,11 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "pydantic",
-    "pydantic-settings"
+    "pydantic-settings",
+    "groq",
+    "pymupdf",
+    "sentence-transformers",
+    "qdrant-client"
 ]
 
 [project.optional-dependencies]
@@ -26,6 +30,9 @@ dev = [
     "httpx",
     "ruff"
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
