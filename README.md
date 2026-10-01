@@ -1,752 +1,651 @@
-\# RAG Production-Ready AI Agent
-
-
+# RAG Production-Ready AI Agent
 
 A production-oriented Retrieval-Augmented Generation (RAG) system built with Python, FastAPI, Qdrant, Sentence Transformers, and Groq.
 
+The project implements an end-to-end RAG pipeline that ingests documents, creates semantic embeddings, retrieves relevant information from a vector database, reranks candidate documents, generates grounded answers with an LLM, and returns structured source citations.
 
+The architecture is designed around separation of concerns, testability, evaluation, and replaceable AI components.
 
-The project implements an end-to-end RAG pipeline that ingests documents, creates semantic embeddings, retrieves relevant information from a vector database, reranks the retrieved candidates, generates grounded answers with an LLM, and returns structured source citations.
+---
 
-
-
-> \*\*Status:\*\* Work in Progress — core RAG pipeline implemented and retrieval evaluation started.
-
-
-
-\---
-
-
-
-\## Architecture
-
-
+## Architecture
 
 ```text
-
-User Question
-
-&#x20;     │
-
-&#x20;     ▼
-
-Query Embedding
-
-&#x20;     │
-
-&#x20;     ▼
-
-Qdrant Vector Search
-
-&#x20;     │
-
-&#x20;     ▼
-
-Top-N Candidates
-
-&#x20;     │
-
-&#x20;     ▼
-
-Cross-Encoder Reranking
-
-&#x20;     │
-
-&#x20;     ▼
-
-Top-K Relevant Documents
-
-&#x20;     │
-
-&#x20;     ├──────────────► Structured Citations
-
-&#x20;     │
-
-&#x20;     ▼
-
-Context Construction
-
-&#x20;     │
-
-&#x20;     ▼
-
-Prompt Construction
-
-&#x20;     │
-
-&#x20;     ▼
-
-Groq LLM
-
-&#x20;     │
-
-&#x20;     ▼
-
-Grounded Answer
-
-```
-
-
-
-The system separates retrieval, generation, and infrastructure concerns so that individual components can be replaced or evaluated independently.
-
-
-
-\---
-
-
-
-\## Key Features
-
-
-
-\* PDF document ingestion with PyMuPDF
-
-\* Document chunking with configurable chunk size and overlap
-
-\* Multilingual semantic embeddings
-
-\* Local persistent Qdrant vector database
-
-\* Metadata-aware retrieval
-
-\* Semantic similarity search
-
-\* Cross-encoder reranking
-
-\* LLM abstraction through a provider-independent interface
-
-\* Groq LLM integration
-
-\* Context-aware prompt construction
-
-\* Structured source citations
-
-\* Retrieval evaluation with Hit@K
-
-\* Environment-based configuration
-
-\* FastAPI application foundation
-
-\* Automated testing structure
-
-\* Git-based version control
-
-
-
-\---
-
-
-
-\## Technology Stack
-
-
-
-| Component                  | Technology                              |
-
-| -------------------------- | --------------------------------------- |
-
-| Language                   | Python 3.12                             |
-
-| API                        | FastAPI                                 |
-
-| Validation / Configuration | Pydantic + pydantic-settings            |
-
-| Document Parsing           | PyMuPDF                                 |
-
-| Embeddings                 | Sentence Transformers                   |
-
-| Embedding Model            | `paraphrase-multilingual-MiniLM-L12-v2` |
-
-| Vector Database            | Qdrant                                  |
-
-| Distance Metric            | Cosine similarity                       |
-
-| Reranker                   | `cross-encoder/ms-marco-MiniLM-L6-v2`   |
-
-| LLM Provider               | Groq                                    |
-
-| LLM                        | `openai/gpt-oss-20b`                    |
-
-| Testing                    | pytest                                  |
-
-| Linting                    | Ruff                                    |
-
-| Version Control            | Git                                     |
-
-
-
-\---
-
-
-
-\## Project Structure
-
-
-
-```text
-
+                         USER QUESTION
+                              |
+                              v
+                    +--------------------+
+                    | Query Embedding    |
+                    +--------------------+
+                              |
+                              v
+                    +--------------------+
+                    | Qdrant Vector      |
+                    | Similarity Search   |
+                    +--------------------+
+                              |
+                              v
+                       Top-N Candidates
+                              |
+                              v
+                    +--------------------+
+                    | Italian            |
+                    | Cross-Encoder      |
+                    | Reranker           |
+                    +--------------------+
+                              |
+                              v
+                       Top-K Documents
+                              |
+                    +---------+---------+
+                    |                   |
+                    v                   v
+             Context Builder      Citation Builder
+                    |
+                    v
+             Prompt Construction
+                    |
+                    v
+                  Groq LLM
+                    |
+                    v
+             Grounded Answer
+
+The system separates retrieval, generation, API, configuration, and evaluation concerns so individual components can be tested or replaced independently.
+
+Key Features
+PDF document ingestion with PyMuPDF
+Configurable document chunking
+Multilingual semantic embeddings
+384-dimensional embedding vectors
+Local persistent Qdrant vector database
+Cosine similarity search
+Metadata-aware retrieval
+Two-stage retrieval architecture
+Italian-specific cross-encoder reranking
+Provider-independent LLM interface
+Groq LLM integration
+Grounded prompt construction
+Structured source citations generated independently from the LLM
+Retrieval evaluation with Hit@5
+Generation evaluation cases
+FastAPI REST API
+Request validation with Pydantic
+Environment-based configuration
+Retry handling for transient LLM failures
+Unit/integration/evaluation test structure
+Ruff linting
+Docker support
+Git-based version control
+Technology Stack
+Component	Technology
+Language	Python 3.12
+API	FastAPI
+Validation / Configuration	Pydantic + pydantic-settings
+Document Parsing	PyMuPDF
+Embeddings	Sentence Transformers
+Embedding Model	sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+Embedding Dimension	384
+Vector Database	Qdrant
+Distance Metric	Cosine similarity
+Reranker	vincolle/reranker-bert-italian-uncased-mmarco-mnrl
+LLM Provider	Groq
+LLM	openai/gpt-oss-20b
+Testing	pytest
+Linting	Ruff
+Containerization	Docker
+Version Control	Git
+Project Structure
 rag-production-ready-ai-agent/
-
 │
-
 ├── app/
-
 │   ├── api/
-
+│   │   └── routes.py
+│   │
 │   ├── core/
-
 │   │   └── config.py
-
-│   ├── evaluation/
-
+│   │
 │   ├── generation/
-
-│   │   ├── citation\_builder.py
-
-│   │   ├── context\_builder.py
-
+│   │   ├── citation_builder.py
+│   │   ├── context_builder.py
 │   │   ├── generator.py
-
 │   │   ├── llm.py
-
-│   │   └── prompt\_builder.py
-
+│   │   └── prompt_builder.py
+│   │
 │   ├── ingestion/
-
 │   │   ├── chunker.py
-
-│   │   ├── embedding\_service.py
-
-│   │   └── pdf\_loader.py
-
+│   │   └── pdf_loader.py
+│   │
 │   ├── models/
-
+│   │
 │   └── retrieval/
-
 │       ├── embeddings.py
-
 │       ├── reranker.py
-
 │       ├── retriever.py
-
-│       └── vector\_store.py
-
+│       └── vector_store.py
 │
-
 ├── data/
-
 │   ├── raw/
-
 │   ├── processed/
-
 │   └── qdrant/
-
 │
-
 ├── scripts/
-
-│   ├── index\_documents.py
-
-│   ├── test\_context\_builder.py
-
-│   ├── test\_embeddings.py
-
-│   ├── test\_generation.py
-
-│   ├── test\_prompt\_builder.py
-
-│   ├── test\_reranker.py
-
-│   ├── test\_retrieval.py
-
-│   └── test\_retriever.py
-
+│   ├── index_documents.py
+│   ├── test_context_builder.py
+│   ├── test_embeddings.py
+│   ├── test_generation.py
+│   ├── test_prompt_builder.py
+│   ├── test_reranker.py
+│   ├── test_retrieval.py
+│   └── test_retriever.py
 │
-
 ├── tests/
-
 │   ├── evaluation/
-
-│   │   ├── test\_cases.json
-
-│   │   └── test\_retrieval.py
-
+│   │   ├── test_cases.json
+│   │   ├── test_generation_cases.json
+│   │   ├── test_generation.py
+│   │   ├── test_grounding.py
+│   │   └── test_retrieval.py
+│   │
 │   ├── integration/
-
+│   │   └── test_api.py
+│   │
 │   └── unit/
-
 │
-
 ├── .env.example
-
 ├── .gitignore
-
+├── Dockerfile
 ├── pyproject.toml
-
 └── README.md
+How the RAG Pipeline Works
+1. Document ingestion
 
-```
+PDF documents are loaded with PyMuPDF.
 
+The loader extracts the text while preserving metadata such as:
 
+source document
+page number
 
-\---
+This metadata is retained throughout the pipeline so retrieved information can later be traced back to its origin.
 
+2. Chunking
 
+Documents are divided into smaller text chunks before embedding.
 
-\## How the RAG Pipeline Works
+The current implementation uses configurable:
 
+chunk size
+chunk overlap
 
+Each chunk preserves the original document metadata and receives a chunk index.
 
-\### 1. Document ingestion
+This allows the system to retrieve smaller relevant portions of a document instead of passing an entire document to the LLM.
 
-
-
-PDF documents are parsed and converted into text while preserving metadata such as:
-
-
-
-\* source document
-
-\* page number
-
-
-
-\### 2. Chunking
-
-
-
-Documents are divided into smaller pieces before embedding.
-
-
-
-Each chunk retains its original metadata and receives a chunk index.
-
-
-
-This allows the system to retrieve information while still knowing exactly where the information came from.
-
-
-
-\### 3. Embeddings
-
-
+3. Embeddings
 
 Each chunk is transformed into a numerical vector using:
 
-
-
-```text
-
 sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 
-```
+The model produces 384-dimensional embeddings.
 
+The same embedding model is used for both documents and user queries, allowing semantic similarity search.
 
+Conceptually:
 
-The model produces 384-dimensional embeddings and supports multiple languages.
+Text
+  |
+  v
+Embedding Model
+  |
+  v
+384-dimensional vector
+4. Vector Search
 
-
-
-\### 4. Vector search
-
-
-
-Embeddings are stored locally in Qdrant.
-
-
+The embeddings are stored in a persistent local Qdrant collection.
 
 When a user asks a question:
 
+User Question
+      |
+      v
+Question Embedding
+      |
+      v
+Qdrant Similarity Search
+      |
+      v
+Top-N Candidates
 
+The current retrieval pipeline initially retrieves up to 10 candidates.
 
-```text
+Qdrant uses cosine similarity to identify semantically related vectors.
 
-Question
+The vector store also supports filtering using document metadata such as the source document.
 
-&#x20;  ↓
+5. Reranking
 
-Question embedding
+Vector similarity provides fast candidate retrieval, but the initial ranking is not necessarily the final ranking.
 
-&#x20;  ↓
+The system therefore performs a second retrieval stage using an Italian-specific cross-encoder:
 
-Qdrant similarity search
+vincolle/reranker-bert-italian-uncased-mmarco-mnrl
 
-&#x20;  ↓
+The reranker evaluates the relationship between:
 
-Top-N candidates
+(query, candidate document)
 
-```
+and assigns a relevance score.
 
+The current pipeline therefore follows:
 
+Fast semantic retrieval
+        |
+        v
+10 candidates
+        |
+        v
+Cross-encoder reranking
+        |
+        v
+Top 5 documents
 
-The system can also filter results using document metadata.
+This two-stage architecture separates high-recall candidate retrieval from more precise relevance ranking.
 
+6. Context Construction
 
+The highest-ranked documents are assembled into a context for the language model.
 
-\### 5. Reranking
+Each context item contains:
 
-
-
-The initial vector search provides candidate documents.
-
-
-
-A cross-encoder then evaluates the relationship between the question and each candidate and produces a reranking score.
-
-
-
-This creates a two-stage retrieval architecture:
-
-
-
-```text
-
-Fast candidate retrieval
-
-&#x20;       ↓
-
-More precise reranking
-
-```
-
-
-
-\### 6. Context construction
-
-
-
-The highest-ranked documents are assembled into a context that is provided to the language model.
-
-
-
-The context contains the document text and source metadata.
-
-
-
-\### 7. Generation
-
-
-
-The LLM receives:
-
-
-
-\* system instructions
-
-\* retrieved context
-
-\* user question
-
-
-
-The prompt explicitly instructs the model to answer using the supplied context and avoid inventing unsupported information.
-
-
-
-\### 8. Citations
-
-
-
-Citations are generated independently from the LLM response using the metadata of the retrieved documents.
-
-
-
-This prevents the language model from inventing page numbers or source references.
-
-
+document source
+page number
+chunk number
+retrieved text
 
 Example:
 
+[Source 1]
+Document: document.pdf
+Page: 2
+Chunk: 0
+Content:
+...
 
+This gives the LLM both the content and the provenance information associated with the retrieved text.
 
-```json
+7. Prompt Construction
+
+The prompt contains three main elements:
+
+System instructions
+        +
+Retrieved context
+        +
+User question
+
+The system prompt explicitly instructs the LLM to:
+
+use only the supplied context
+avoid outside knowledge
+avoid unsupported inference
+avoid inventing facts
+clearly state when the context is insufficient
+
+The goal is to reduce unsupported generation and keep the answer grounded in retrieved evidence.
+
+8. LLM Generation
+
+The current implementation uses Groq as the LLM provider with:
+
+openai/gpt-oss-20b
+
+The LLM receives the constructed prompt and produces the final answer.
+
+The LLM is accessed through an abstraction:
+
+LLM interface
+     |
+     +---- Groq implementation
+
+This keeps the generation layer replaceable if another provider or local model is introduced later.
+
+The Groq implementation also contains retry handling for connection/API failures and empty responses.
+
+9. Structured Citations
+
+Citations are generated independently from the LLM response.
+
+The application builds citations directly from retrieved document metadata.
+
+Example:
 
 {
-
-&#x20; "id": 1,
-
-&#x20; "source": "document.pdf",
-
-&#x20; "page": 2,
-
-&#x20; "chunk": 0
-
+  "id": 1,
+  "source": "document.pdf",
+  "page": 2,
+  "chunk": 0
 }
 
-```
+This is intentional.
 
+The LLM does not have to invent or reproduce page numbers and source references.
 
+The application already knows where each retrieved chunk came from.
 
-\---
+The API therefore returns:
 
+{
+  "answer": "...",
+  "citations": [
+    {
+      "id": 1,
+      "source": "document.pdf",
+      "page": 2,
+      "chunk": 0
+    }
+  ]
+}
+API
 
+The application exposes a FastAPI REST API.
 
-\## Evaluation
+Health Check
+GET /health
 
+Example response:
 
+{
+  "status": "ok",
+  "environment": "development"
+}
+Ask a Question
+POST /api/ask
+
+Request:
+
+{
+  "question": "Che cosa meditiamo nel Santo Rosario?"
+}
+
+Response:
+
+{
+  "answer": "Generated answer...",
+  "citations": [
+    {
+      "id": 1,
+      "source": "document.pdf",
+      "page": 1,
+      "chunk": 0
+    }
+  ]
+}
+Interactive API Documentation
+
+When the application is running:
+
+http://127.0.0.1:8000/docs
+
+FastAPI provides interactive Swagger documentation for the available endpoints.
+
+Evaluation
 
 The project includes an initial retrieval evaluation suite.
 
+The current retrieval dataset contains:
 
+4 answerable questions
+1 explicitly unanswerable question
 
-The evaluation currently contains five representative questions and checks whether an expected source is found among the top five retrieved results.
+Answerable questions are evaluated using Hit@5.
 
-
-
-\### Current result
-
-
-
-```text
-
+Current Retrieval Result
 === SUMMARY ===
-
-Passed: 5/5
-
+Answerable cases: 4/4
 Hit@5: 100.00%
 
-```
+This means that, in the current evaluation dataset, the expected source was found within the top five retrieved documents for all four answerable questions.
 
+The unanswerable question is intentionally excluded from Hit@5 because it has no expected source.
 
+Important
 
-This means that, for the current five-question evaluation set, the expected source was found within the top five retrieved documents for every question.
+The current 100% Hit@5 result does not mean that the complete RAG system has 100% answer accuracy.
 
+It is a retrieval metric measured on a small evaluation dataset.
 
+It does not by itself measure:
 
-\*\*Important:\*\* Hit@5 is a retrieval metric. It does not mean that the complete RAG system has 100% answer accuracy.
+factual correctness of the generated answer
+completeness of the answer
+hallucination rate
+citation correctness
+production-scale robustness
 
+The project also contains generation and grounding evaluation components that are being developed alongside retrieval evaluation.
 
+Run retrieval evaluation with:
 
-Future evaluation will include additional metrics for retrieval quality and generated-answer grounding.
+python -m tests.evaluation.test_retrieval
+Testing
 
+Run the complete pytest suite with:
 
+python -m pytest -v
 
-Run the current retrieval evaluation with:
+Integration tests include:
 
+health endpoint
+valid /api/ask requests
+invalid empty questions
+HTTP response validation
 
+Individual component checks are also available:
 
-```bash
+python -m scripts.test_embeddings
+python -m scripts.test_retrieval
+python -m scripts.test_reranker
+python -m scripts.test_retriever
+python -m scripts.test_generation
+Configuration
 
-python -m tests.evaluation.test\_retrieval
-
-```
-
-
-
-\---
-
-
-
-\## Configuration
-
-
-
-Create a `.env` file based on `.env.example`.
-
-
+Create a .env file based on .env.example.
 
 Example:
 
-
-
-```env
-
-APP\_NAME=RAG Production-Ready AI Agent
-
-APP\_VERSION=0.1.0
-
+APP_NAME=RAG Production-Ready AI Agent
+APP_VERSION=0.1.0
 ENVIRONMENT=development
-
-GROQ\_API\_KEY=your\_api\_key\_here
-
-```
-
-
+GROQ_API_KEY=your_api_key_here
 
 Secrets are intentionally excluded from version control.
 
+The real .env file is ignored by Git.
 
+Running Locally
 
-The real `.env` file is ignored by Git.
-
-
-
-\---
-
-
-
-\## Running the Project
-
-
-
-Create and activate a virtual environment:
-
-
-
-```bash
+Create a virtual environment:
 
 python -m venv .venv
 
-```
+On Windows:
 
+.venv\Scripts\Activate.ps1
 
-
-Windows:
-
-
-
-```powershell
-
-.venv\\Scripts\\Activate.ps1
-
-```
-
-
-
-Install the project dependencies:
-
-
-
-```bash
+Install the project:
 
 pip install -e .
 
-```
-
-
-
-Run the FastAPI application:
-
-
-
-```bash
+Run the API:
 
 uvicorn app.main:app --reload
 
-```
+The API will be available at:
 
+http://127.0.0.1:8000
 
+Swagger documentation:
 
-The health endpoint is available at:
+http://127.0.0.1:8000/docs
 
-
-
-```text
+Health endpoint:
 
 http://127.0.0.1:8000/health
+Indexing Documents
 
-```
-
-
-
-\---
-
-
-
-\## Indexing Documents
-
-
-
-Place source PDF documents inside:
-
-
-
-```text
+Place source PDF files inside:
 
 data/raw/
 
-```
-
-
-
 Then run:
 
+python -m scripts.index_documents
 
+The indexing pipeline:
 
-```bash
+loads the PDF
+extracts text
+creates chunks
+generates embeddings
+creates the Qdrant collection if necessary
+stores vectors and metadata
 
-python -m scripts.index\_documents
+The local Qdrant database is stored under:
 
-```
+data/qdrant/
+Docker
 
+The project includes a Docker image for reproducible execution.
 
+Build the image:
 
-The pipeline will:
+docker build -t rag-production-ready-ai-agent .
 
+Run the container:
 
+docker run --rm -p 8000:8000 --env-file .env rag-production-ready-ai-agent
 
-1\. load the PDF
+The Docker image includes:
 
-2\. extract document text
+Python 3.12
+application dependencies
+CPU-only PyTorch
+application source code
+the local Qdrant data used by the project
+the embedding model
+the Italian reranker model
 
-3\. create chunks
+The AI model files are downloaded during image construction rather than during normal container startup.
 
-4\. generate embeddings
+Model initialization still occurs when the application process starts.
 
-5\. create the Qdrant collection if necessary
+Once the container is running:
 
-6\. store the vectors and metadata
+http://localhost:8000/health
 
+Swagger:
 
+http://localhost:8000/docs
 
-\---
+The Docker setup is intended to make the application environment reproducible independently of the developer's local Python environment.
 
+Design Principles
+Separation of concerns
 
+Retrieval, generation, API, configuration, and evaluation are implemented as separate components.
 
-\## Testing Individual Components
+This makes individual components easier to test and replace.
 
+Grounded generation
 
+The LLM is explicitly instructed to use only the retrieved context.
 
-Examples:
+Independent citations
 
+Citations are generated by the application from document metadata rather than being invented by the LLM.
 
+Evaluation-driven development
 
-```bash
+Retrieval quality is measured with an explicit evaluation dataset instead of relying only on manual inspection.
 
-python -m scripts.test\_embeddings
+Replaceable AI components
 
-python -m scripts.test\_retrieval
+The LLM is accessed through an abstraction so the provider can be replaced without redesigning the complete generation layer.
 
-python -m scripts.test\_reranker
+Reproducibility
 
-python -m scripts.test\_retriever
+Environment configuration, dependency definitions, Git version control, and Docker are used to make execution more reproducible.
 
-python -m scripts.test\_generation
+Current Limitations
 
-```
+This is a portfolio-grade engineering project and not yet a complete production deployment.
 
+Current limitations include:
 
+small evaluation datasets
+character-based chunking rather than advanced semantic chunking
+local Qdrant persistence
+local model execution for embeddings and reranking
+external Groq dependency for generation
+no authentication or authorization layer
+no production monitoring/observability stack
+no distributed deployment
+dependency versions are not fully locked
+Docker startup can still involve significant model initialization time
 
-The project also contains a dedicated evaluation suite under:
+These limitations are intentional areas for future engineering work rather than hidden assumptions.
 
+Roadmap
 
+Potential next improvements include:
 
-```text
+stronger automated retrieval evaluation
+more robust answer-grounding evaluation
+citation-level evaluation
+semantic or structure-aware chunking
+hybrid retrieval
+query rewriting
+configurable retrieval parameters
+asynchronous API execution
+authentication and authorization
+structured logging and observability
+dependency locking
+production deployment
+CI/CD pipeline
+larger evaluation datasets
+latency and performance benchmarks
+Portfolio Summary
 
-tests/evaluation/
+This project demonstrates an end-to-end implementation of a modern RAG system rather than only an LLM API call.
 
-```
+It covers:
 
+Document Ingestion
+        ↓
+Chunking
+        ↓
+Embeddings
+        ↓
+Vector Database
+        ↓
+Semantic Retrieval
+        ↓
+Cross-Encoder Reranking
+        ↓
+Context Construction
+        ↓
+Grounded Prompting
+        ↓
+LLM Generation
+        ↓
+Structured Citations
+        ↓
+Evaluation
+        ↓
+FastAPI
+        ↓
+Docker
 
-
-\---
-
-
-
-\## Design Principles
-
-
-
-\### Separation of concerns
-
-
-
-Retrieval and generation are deliberately separated.
-
-
-
-The ma
-
-
-
+The project is intended to demonstrate practical AI engineering skills including retrieval architecture, vector search, reranking, LLM integration, API development, evaluation, testing, configuration management, and containerization.
